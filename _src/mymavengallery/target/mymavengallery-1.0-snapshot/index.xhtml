@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+
+    <f:view contentType="text/html">
+        <h:head>
+            <f:facet name="first">
+                <meta content='text/html; charset=UTF-8' http-equiv="Content-Type"/>
+                <title>My Gallery</title>
+            </f:facet>  
+            <style>
+                body {
+                    font-size: 10px;
+                }
+                td {             
+                    vertical-align: top;
+                }
+            </style>
+        </h:head>
+
+        <h:body>
+
+            <p:layout fullPage="true">
+
+                <p:layoutUnit position="north" style="text-align:center;" size="95" resizable="false" closable="false" collapsible="false">
+                    <p:graphicImage name="icons/logo.png"/>
+                </p:layoutUnit>
+
+                <p:layoutUnit position="south" style="text-align:right;" resizable="false" closable="false" collapsible="false">
+                    <p:graphicImage name="icons/packt.png"/>
+                </p:layoutUnit>                
+
+                <p:layoutUnit position="center">
+                    <p:panelGrid columns="2">
+                        <h:outputText value="My Photos"/>
+                        <p:ajaxStatus>
+                            <f:facet name="default">
+                                <h:outputText value="My Gallery" />
+                            </f:facet>
+                            <f:facet name="start">
+                               <p:graphicImage name="icons/ajax-loader.gif" height="10" />
+                            </f:facet>
+                            <f:facet name="complete">
+                                <h:outputText value="My Gallery" />
+                            </f:facet>
+                        </p:ajaxStatus>
+                        <h:form id="tableFormId">                            
+                            <p:dataTable id="tablePhotosId"
+                                         value="#{myGalleryBean.photos}"
+                                         var="t"
+                                         rows="10"
+                                         paginator="true"                                      
+                                         paginatorTemplate="{CurrentPageReport}  {FirstPageLink}
+                                         {PreviousPageLink} {PageLinks} {NextPageLink}
+                                         {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10"
+                                         emptyMessage="No photos found ...">                                    
+                                <p:column headerText="Preview" style="width:50px;">
+                                    <p:graphicImage id="previewId" name="icons/preview.png" 
+                                                    style="cursor:pointer" />
+                                    <p:overlayPanel id="previewPanelId" for="previewId" 
+                                                    showEffect="blind" hideEffect="explode" 
+                                                    showEvent="mouseover" hideEvent="mouseout"
+                                                    showCloseIcon="true">
+                                        <p:graphicImage name="photos/#{t.name}" width="200" height="105"/>
+                                    </p:overlayPanel>
+                                </p:column> 
+                                <p:column style="width:15px;">
+                                    <h:selectBooleanCheckbox value="#{t.selected}" />
+                                </p:column>
+                                <p:column headerText="Name">
+                                    <h:outputText value="#{t.name}" />
+                                </p:column>
+                            </p:dataTable> 
+                            <p:commandButton value="Refresh Gallery" update=":galleriaId" icon="ui-icon-refresh" />
+                            <p:commandButton type="button" process="none" value="Upload Photos" 
+                                             onclick="PF('uploadPhotosDialog').show();" icon="ui-icon-plusthick" />
+                        </h:form>
+                        <p:galleria id="galleriaId" 
+                                    value="#{myGalleryBean.photos.stream().filter((i)->i.selected eq true).toList()}"
+                                    var="t"
+                                    panelWidth="800" panelHeight="400" 
+                                    showCaption="true" 
+                                    autoPlay="false" effectSpeed="1000">     
+                            <p:graphicImage name="photos/#{t.name}" title="#{t.name}" width="800" height="400"/>
+                        </p:galleria>
+                    </p:panelGrid>
+                </p:layoutUnit>
+
+            </p:layout>
+
+            <p:dialog header="Upload New Photos" 
+                      widgetVar="uploadPhotosDialog"
+                      modal="true"
+                      resizable="false"
+                      width="850" height="500">
+                <h:form>                         
+                    <p:fileUpload id="uploadFileId" 
+                                  fileUploadListener="#{myGalleryBean.handleFileUpload}" 
+                                  mode="advanced" multiple="true"                              
+                                  update="uploadFileId, :tableFormId:tablePhotosId, growlId"
+                                  sizeLimit="2097152" fileLimit="300" 
+                                  allowTypes="/(\.|\/)(gif|jpe?g|png)$/"
+                                  dragDropSupport="false" /> 
+                    <p:growl id="growlId"/>
+                </h:form>
+            </p:dialog>
+
+        </h:body>
+
+    </f:view>
+</html>
+
